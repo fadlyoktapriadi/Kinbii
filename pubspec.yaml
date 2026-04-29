@@ -16,7 +16,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.2.3
   flutter_screenutil: ^5.9.3
-  cached_network_image: ^3.4.1
   google_fonts: ^8.0.2
 
   # Storage
