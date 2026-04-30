@@ -2,6 +2,13 @@
 
 A new Flutter project.
 
+## Report Product
+
+Open `Settings > Report Product` to view:
+- Stock available per product
+- Product In and Product Out history
+- Export CSV (copies report to clipboard)
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

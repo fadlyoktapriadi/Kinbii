@@ -8,6 +8,7 @@ import 'package:kinbii/presentation/pages/setting/setting_screen.dart';
 import 'package:kinbii/presentation/pages/setting/manage_category_screen.dart';
 import 'package:kinbii/presentation/pages/setting/manage_storage_screen.dart';
 import 'package:kinbii/presentation/pages/product_list/product_list_screen.dart';
+import 'package:kinbii/presentation/pages/report/report_product_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -36,7 +37,7 @@ class AppRouter {
               GoRoute(
                 path: '/home',
                 name: 'home',
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => HomeScreen(),
               ),
             ],
           ),
@@ -92,6 +93,12 @@ class AppRouter {
         name: 'manage_storage',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const ManageStorageScreen(),
+      ),
+      GoRoute(
+        path: '/report-product',
+        name: 'report_product',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => ReportProductScreen(),
       ),
     ],
     errorBuilder: (context, state) =>

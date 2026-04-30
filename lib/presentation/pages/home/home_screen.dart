@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 import 'package:kinbii/theme/app_theme.dart';
+import 'package:kinbii/di/injection.dart';
+import 'package:kinbii/presentation/controllers/category_controller.dart';
+import 'package:kinbii/presentation/controllers/product_controller.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final CategoryController categoryController = Get.put(sl<CategoryController>());
+  final ProductController productController = Get.put(sl<ProductController>());
+
+  HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    productController.fetchProducts();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -26,13 +35,20 @@ class HomeScreen extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
               Expanded(
-                child: ListView.separated(
-                  itemCount: 5,
-                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
-                  itemBuilder: (context, index) {
-                    return _buildCategoryItem(context, index);
-                  },
-                ),
+                child: Obx(() {
+                  if (categoryController.categories.isEmpty) {
+                    return Center(child: Text("No categories found", style: AppTheme.appTextStyles.bodyMedium));
+                  }
+                  return ListView.separated(
+                    itemCount: categoryController.categories.length,
+                    separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                    itemBuilder: (context, index) {
+                      final categoryName = categoryController.categories[index].name;
+                      final stock = productController.getStockByCategory(categoryName);
+                      return _buildCategoryItem(context, categoryName, stock);
+                    },
+                  );
+                }),
               ),
             ],
           ),
@@ -41,10 +57,10 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, int index) {
+  Widget _buildCategoryItem(BuildContext context, String categoryName, int stock) {
     return GestureDetector(
       onTap: () {
-        context.push('/product-list', extra: 'Kategori ${index + 1}');
+        context.push('/product-list', extra: categoryName);
       },
       child: Container(
         padding: EdgeInsets.all(16.w),
@@ -74,14 +90,14 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Kategori ${index + 1}',
+                  categoryName,
                   style: AppTheme.appTextStyles.header3.copyWith(
                     color: AppTheme.appColors.white,
                   ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  'Total Stok: ${(index + 1) * 15}',
+                  'Total Stok: $stock',
                   style: AppTheme.appTextStyles.bodyMedium.copyWith(
                     color: AppTheme.appColors.white,
                   ),

@@ -3,8 +3,11 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:kinbii/routing/app_router.dart';
 import 'package:kinbii/theme/app_theme.dart';
+import 'package:kinbii/di/injection.dart' as di;
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  di.init();
   runApp(const MyApp());
 }
 

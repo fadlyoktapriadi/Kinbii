@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:kinbii/theme/app_theme.dart';
+import 'package:kinbii/di/injection.dart';
+import 'package:kinbii/data/models/product_model.dart';
+import 'package:kinbii/data/models/product_movement_model.dart';
+import 'package:kinbii/presentation/controllers/product_controller.dart';
+import 'package:kinbii/presentation/controllers/category_controller.dart';
+import 'package:kinbii/presentation/controllers/storage_controller.dart';
+import 'package:kinbii/presentation/controllers/report_controller.dart';
 
 class ProductInScreen extends StatefulWidget {
   const ProductInScreen({super.key});
@@ -11,7 +19,17 @@ class ProductInScreen extends StatefulWidget {
 
 class _ProductInScreenState extends State<ProductInScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _stockController = TextEditingController();
   final _dateController = TextEditingController();
+
+  final ProductController productController = Get.put(sl<ProductController>());
+  final CategoryController categoryController = Get.put(sl<CategoryController>());
+  final StorageController storageController = Get.put(sl<StorageController>());
+  final ReportController reportController = Get.put(sl<ReportController>());
+
+  String? _selectedCategory;
+  String? _selectedStorage;
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -29,6 +47,8 @@ class _ProductInScreenState extends State<ProductInScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _stockController.dispose();
     _dateController.dispose();
     super.dispose();
   }
@@ -49,11 +69,35 @@ class _ProductInScreenState extends State<ProductInScreen> {
                   style: AppTheme.appTextStyles.header1,
                 ),
                 SizedBox(height: 24.h),
-                _buildTextField(label: 'Product Name'),
+                _buildTextField(label: 'Product Name', controller: _nameController),
                 SizedBox(height: 16.h),
-                _buildTextField(label: 'Category'),
+                _buildTextField(
+                  label: 'Stock Quantity',
+                  controller: _stockController,
+                  keyboardType: TextInputType.number,
+                ),
                 SizedBox(height: 16.h),
-                _buildTextField(label: 'Storage Name'),
+                Obx(() => _buildDropdown(
+                  label: 'Category',
+                  value: _selectedCategory,
+                  items: categoryController.categories.map((e) => e.name).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedCategory = val;
+                    });
+                  },
+                )),
+                SizedBox(height: 16.h),
+                Obx(() => _buildDropdown(
+                  label: 'Storage Name',
+                  value: _selectedStorage,
+                  items: storageController.storages.map((e) => e.name).toList(),
+                  onChanged: (val) {
+                    setState(() {
+                      _selectedStorage = val;
+                    });
+                  },
+                )),
                 SizedBox(height: 16.h),
                 _buildTextField(
                   label: 'Date In',
@@ -67,9 +111,47 @@ class _ProductInScreenState extends State<ProductInScreen> {
                   width: double.infinity,
                   height: 50.h,
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Submit logic here
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate() && _selectedCategory != null && _selectedStorage != null) {
+                        final product = ProductModel(
+                          name: _nameController.text,
+                          categoryName: _selectedCategory!,
+                          storageName: _selectedStorage!,
+                          stock: int.tryParse(_stockController.text) ?? 0,
+                          dateIn: _dateController.text,
+                        );
+
+                        final created = await productController.addProduct(product);
+                        if (created != null) {
+                          await reportController.addMovement(
+                            ProductMovementModel(
+                              productId: created.id ?? 0,
+                              productName: created.name,
+                              categoryName: created.categoryName,
+                              storageName: created.storageName,
+                              quantity: created.stock,
+                              type: 'IN',
+                              date: created.dateIn,
+                            ),
+                          );
+                        }
+
+                        if (created != null && mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Product added successfully!')),
+                          );
+                          _nameController.clear();
+                          _stockController.clear();
+                          _dateController.clear();
+                          setState(() {
+                            _selectedCategory = null;
+                            _selectedStorage = null;
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please fill all fields')),
+                          );
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -101,6 +183,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
     bool readOnly = false,
     VoidCallback? onTap,
     Widget? suffixIcon,
+    TextInputType? keyboardType,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,6 +197,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
           controller: controller,
           readOnly: readOnly,
           onTap: onTap,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: 'Enter $label',
             hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
@@ -140,6 +224,49 @@ class _ProductInScreenState extends State<ProductInScreen> {
             }
             return null;
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTheme.appTextStyles.bodyMedium,
+        ),
+        SizedBox(height: 8.h),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: 'Select $label',
+            hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
+              color: AppTheme.appColors.grey,
+            ),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: AppTheme.appColors.primary),
+            ),
+          ),
+          validator: (val) => val == null ? 'Please select $label' : null,
         ),
       ],
     );

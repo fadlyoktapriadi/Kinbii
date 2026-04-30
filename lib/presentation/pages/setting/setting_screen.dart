@@ -46,17 +46,7 @@ class SettingScreen extends StatelessWidget {
                 title: 'Report Product',
                 subtitle: 'View product in/out reports',
                 onTap: () {
-                  // Navigate to Report Product
-                },
-              ),
-              SizedBox(height: 16.h),
-              _buildSettingItem(
-                context,
-                icon: Icons.backup_outlined,
-                title: 'Backup Data',
-                subtitle: 'Export data to local storage',
-                onTap: () {
-                  // Handle backup logic
+                  context.push('/report-product');
                 },
               ),
             ],
