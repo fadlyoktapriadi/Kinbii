@@ -45,7 +45,7 @@ class _ManageCategoryScreenState extends State<ManageCategoryScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Category', style: AppTheme.appTextStyles.header2),
+              Text('Add Category', style: AppTheme.appTextStyles.header3),
               SizedBox(height: 16.h),
               TextFormField(
                 controller: _categoryController,

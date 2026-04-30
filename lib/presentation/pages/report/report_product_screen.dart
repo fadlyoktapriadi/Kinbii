@@ -179,8 +179,7 @@ class ReportProductScreen extends StatelessWidget {
                 Text(
                   'Stock: ${product.stock}',
                   style: AppTheme.appTextStyles.bodyMedium.copyWith(
-                    color: AppTheme.appColors.primary,
-                    fontWeight: FontWeight.bold,
+                    color: AppTheme.appColors.black,
                   ),
                 ),
               ],

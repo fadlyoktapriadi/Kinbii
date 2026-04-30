@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
+import 'package:kinbii/di/injection.dart';
+import 'package:kinbii/presentation/controllers/category_controller.dart';
+import 'package:kinbii/presentation/controllers/product_controller.dart';
 import 'package:kinbii/theme/app_theme.dart';
 
 class MainScreen extends StatelessWidget {
@@ -8,11 +12,31 @@ class MainScreen extends StatelessWidget {
 
   const MainScreen({super.key, required this.navigationShell});
 
-  void _onTap(int index) {
+  Future<void> _onTap(int index) async {
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
     );
+
+    final productController = Get.isRegistered<ProductController>()
+        ? Get.find<ProductController>()
+        : Get.put(sl<ProductController>());
+
+    if (index == 0) {
+      final categoryController = Get.isRegistered<CategoryController>()
+          ? Get.find<CategoryController>()
+          : Get.put(sl<CategoryController>());
+
+      await Future.wait([
+        categoryController.fetchCategories(),
+        productController.fetchProducts(),
+      ]);
+      return;
+    }
+
+    if (index == 2) {
+      await productController.fetchProducts();
+    }
   }
 
   @override
@@ -105,4 +129,3 @@ class MainScreen extends StatelessWidget {
     );
   }
 }
-

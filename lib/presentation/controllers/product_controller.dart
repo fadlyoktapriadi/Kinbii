@@ -88,7 +88,12 @@ class ProductController extends GetxController {
     );
   }
 
-  int getCountProductByCategory(String categoryName) {
-    return products.where((p) => p.categoryName == categoryName).length;
+  int getProductCountByCategory(String categoryName) {
+    final normalizedCategory = categoryName.trim().toLowerCase();
+    return products
+        .where(
+          (p) => p.categoryName.trim().toLowerCase() == normalizedCategory,
+        )
+        .length;
   }
 }

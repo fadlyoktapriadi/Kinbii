@@ -3,10 +3,12 @@ import 'package:kinbii/data/datasources/local/database_helper.dart';
 import 'package:kinbii/data/repositories/category_repository_impl.dart';
 import 'package:kinbii/data/repositories/storage_repository_impl.dart';
 import 'package:kinbii/data/repositories/product_movement_repository_impl.dart';
+import 'package:kinbii/data/services/backup_service.dart';
 import 'package:kinbii/domain/repositories/category_repository.dart';
 import 'package:kinbii/domain/repositories/storage_repository.dart';
 import 'package:kinbii/domain/repositories/product_repository.dart';
 import 'package:kinbii/domain/repositories/product_movement_repository.dart';
+import 'package:kinbii/presentation/controllers/backup_controller.dart';
 import 'package:kinbii/presentation/controllers/category_controller.dart';
 import 'package:kinbii/presentation/controllers/storage_controller.dart';
 import 'package:kinbii/presentation/controllers/product_controller.dart';
@@ -19,6 +21,7 @@ void init() {
   sl.registerLazySingleton<DatabaseHelper>(() => DatabaseHelper());
 
   // Repositories
+  sl.registerLazySingleton<BackupService>(() => BackupService(sl()));
   sl.registerLazySingleton<CategoryRepository>(
     () => CategoryRepositoryImpl(sl()),
   );
@@ -37,4 +40,5 @@ void init() {
   sl.registerFactory(() => StorageController(sl()));
   sl.registerFactory(() => ProductController(sl()));
   sl.registerFactory(() => ReportController(sl()));
+  sl.registerFactory(() => BackupController(sl()));
 }

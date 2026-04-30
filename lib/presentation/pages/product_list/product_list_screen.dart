@@ -18,11 +18,19 @@ class ProductListScreen extends StatefulWidget {
 
 class _ProductListScreenState extends State<ProductListScreen> {
   final ProductController controller = Get.put(sl<ProductController>());
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     controller.fetchProductsByCategory(widget.categoryName);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -42,6 +50,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
             Padding(
               padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 0),
               child: TextFormField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value.trim();
+                  });
+                },
                 decoration: InputDecoration(
                   hintText: 'Search product...',
                   hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
@@ -77,7 +91,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 if (controller.isLoading.value) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (controller.categoryProducts.isEmpty) {
+
+                final query = _searchQuery.toLowerCase();
+                final filteredProducts = query.isEmpty
+                    ? controller.categoryProducts
+                    : controller.categoryProducts
+                        .where((product) =>
+                            product.name.toLowerCase().contains(query) ||
+                            product.storageName.toLowerCase().contains(query))
+                        .toList();
+
+                if (filteredProducts.isEmpty) {
                   return Center(
                     child: Text(
                       "No products found",
@@ -90,10 +114,10 @@ class _ProductListScreenState extends State<ProductListScreen> {
                     horizontal: 20.w,
                     vertical: 16.h,
                   ),
-                  itemCount: controller.categoryProducts.length,
+                  itemCount: filteredProducts.length,
                   separatorBuilder: (context, index) => SizedBox(height: 12.h),
                   itemBuilder: (context, index) {
-                    final product = controller.categoryProducts[index];
+                    final product = filteredProducts[index];
                     return _buildProductItem(index, product);
                   },
                 );
@@ -135,8 +159,41 @@ class _ProductListScreenState extends State<ProductListScreen> {
               ListTile(
                 leading: Icon(Icons.delete, color: AppTheme.appColors.danger),
                 title: Text('Delete', style: AppTheme.appTextStyles.bodyLarge),
-                onTap: () {
-                  if (product.id != null) {
+                onTap: () async {
+                  final shouldDelete = await showDialog<bool>(
+                    context: context,
+                    builder: (dialogContext) => AlertDialog(
+                      title: Text(
+                        'Delete Product',
+                        style: AppTheme.appTextStyles.header3,
+                      ),
+                      content: Text(
+                        'Are you sure you want to delete this product?',
+                        style: AppTheme.appTextStyles.bodyMedium,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => dialogContext.pop(false),
+                          child: Text(
+                            'Cancel',
+                            style: TextStyle(color: AppTheme.appColors.grey),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => dialogContext.pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.appColors.danger,
+                          ),
+                          child: Text(
+                            'Delete',
+                            style: TextStyle(color: AppTheme.appColors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (shouldDelete == true && product.id != null) {
                     controller.deleteProduct(product.id!, index);
                   }
                   context.pop();

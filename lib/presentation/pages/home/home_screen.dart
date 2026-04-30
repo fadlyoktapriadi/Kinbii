@@ -7,16 +7,32 @@ import 'package:kinbii/di/injection.dart';
 import 'package:kinbii/presentation/controllers/category_controller.dart';
 import 'package:kinbii/presentation/controllers/product_controller.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final CategoryController categoryController = Get.put(sl<CategoryController>());
   final ProductController productController = Get.put(sl<ProductController>());
 
-  HomeScreen({super.key});
+  Future<void> _refreshData() async {
+    await Future.wait([
+      categoryController.fetchCategories(),
+      productController.fetchProducts(),
+    ]);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshData();
+  }
 
   @override
   Widget build(BuildContext context) {
-    productController.fetchProducts();
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -48,17 +64,37 @@ class HomeScreen extends StatelessWidget {
               SizedBox(height: 16.h),
               Expanded(
                 child: Obx(() {
-                  if (categoryController.categories.isEmpty) {
-                    return Center(child: Text("No categories found", style: AppTheme.appTextStyles.bodyMedium));
-                  }
-                  return ListView.separated(
-                    itemCount: categoryController.categories.length,
-                    separatorBuilder: (context, index) => SizedBox(height: 12.h),
-                    itemBuilder: (context, index) {
-                      final categoryName = categoryController.categories[index].name;
-                      final stock = productController.getCountProductByCategory(categoryName);
-                      return _buildCategoryItem(context, categoryName, stock);
-                    },
+                  final categories = categoryController.categories;
+
+                  return RefreshIndicator(
+                    onRefresh: _refreshData,
+                    child: categories.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(height: 200.h),
+                              Center(
+                                child: Text(
+                                  "No categories found",
+                                  style: AppTheme.appTextStyles.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.separated(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            itemCount: categories.length,
+                            separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                            itemBuilder: (context, index) {
+                              final categoryName = categories[index].name;
+                              final stock = productController.getProductCountByCategory(categoryName);
+                              return _buildCategoryItem(
+                                context,
+                                categoryName,
+                                stock,
+                              );
+                            },
+                          ),
                   );
                 }),
               ),
@@ -69,10 +105,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, String categoryName, int stock) {
+  Widget _buildCategoryItem(
+    BuildContext context,
+    String categoryName,
+    int stock,
+  ) {
     return GestureDetector(
-      onTap: () {
-        context.push('/product-list', extra: categoryName);
+      onTap: () async {
+        await context.push('/product-list', extra: categoryName);
+        await _refreshData();
       },
       child: Container(
         padding: EdgeInsets.all(16.w),
@@ -120,7 +161,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     SizedBox(width: 6.w),
                     Text(
-                      'Product',
+                      stock == 1 ? 'Product' : 'Products',
                       style: AppTheme.appTextStyles.bodyMedium.copyWith(
                         color: AppTheme.appColors.white,
                         fontSize: 16.sp

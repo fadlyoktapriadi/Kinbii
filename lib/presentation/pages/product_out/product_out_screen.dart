@@ -68,7 +68,7 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
               children: [
                 Text(
                   'Product Out',
-                  style: AppTheme.appTextStyles.header1,
+                  style: AppTheme.appTextStyles.header2,
                 ),
                 SizedBox(height: 24.h),
                 _buildProductSearchField(),

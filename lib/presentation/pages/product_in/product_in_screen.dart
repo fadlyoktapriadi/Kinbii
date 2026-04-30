@@ -66,7 +66,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
               children: [
                 Text(
                   'Product In',
-                  style: AppTheme.appTextStyles.header1,
+                  style: AppTheme.appTextStyles.header2,
                 ),
                 SizedBox(height: 24.h),
                 _buildTextField(label: 'Product Name', controller: _nameController),
