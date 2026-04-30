@@ -28,10 +28,22 @@ class HomeScreen extends StatelessWidget {
                 'Kinbii',
                 style: AppTheme.appTextStyles.appName,
               ),
+              Text(
+                'Inventory Management System',
+                style: AppTheme.appTextStyles.bodyMedium,
+              ),
               SizedBox(height: 24.h),
               Text(
-                'Daftar Kategori',
-                style: AppTheme.appTextStyles.header2,
+                'Hi, Kinbii User! 💖',
+                style: AppTheme.appTextStyles.appName.copyWith(
+                  fontSize: 20.sp,
+                  color: AppTheme.appColors.black
+                )
+              ),
+              SizedBox(height: 12.h),
+              Text(
+                'Category Product',
+                style: AppTheme.appTextStyles.header3,
               ),
               SizedBox(height: 16.h),
               Expanded(
@@ -44,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                     separatorBuilder: (context, index) => SizedBox(height: 12.h),
                     itemBuilder: (context, index) {
                       final categoryName = categoryController.categories[index].name;
-                      final stock = productController.getStockByCategory(categoryName);
+                      final stock = productController.getCountProductByCategory(categoryName);
                       return _buildCategoryItem(context, categoryName, stock);
                     },
                   );
@@ -68,8 +80,9 @@ class HomeScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16.r),
           gradient: LinearGradient(
             colors: [
-              AppTheme.appColors.primary.withValues(alpha: 0.8),
-              AppTheme.appColors.info.withValues(alpha: 0.8),
+              AppTheme.appColors.secondary.withValues(alpha: 0.8),
+              AppTheme.appColors.secondary.withValues(alpha: 0.6),
+              AppTheme.appColors.white.withValues(alpha: 0.8),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -96,17 +109,31 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 4.h),
-                Text(
-                  'Total Stok: $stock',
-                  style: AppTheme.appTextStyles.bodyMedium.copyWith(
-                    color: AppTheme.appColors.white,
-                  ),
-                ),
+                Row(
+                  children: [
+                    Text(
+                      '$stock',
+                      style: AppTheme.appTextStyles.bodyMedium.copyWith(
+                        color: AppTheme.appColors.white,
+                        fontSize: 22.sp
+                      ),
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      'Product',
+                      style: AppTheme.appTextStyles.bodyMedium.copyWith(
+                        color: AppTheme.appColors.white,
+                        fontSize: 16.sp
+                      ),
+                    )
+                  ],
+                )
+
               ],
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: AppTheme.appColors.white,
+              color: AppTheme.appColors.grey,
               size: 20.w,
             ),
           ],

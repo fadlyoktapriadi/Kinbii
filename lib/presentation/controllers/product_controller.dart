@@ -88,9 +88,7 @@ class ProductController extends GetxController {
     );
   }
 
-  int getStockByCategory(String categoryName) {
-    return products
-        .where((p) => p.categoryName == categoryName)
-        .fold(0, (sum, item) => sum + item.stock);
+  int getCountProductByCategory(String categoryName) {
+    return products.where((p) => p.categoryName == categoryName).length;
   }
 }

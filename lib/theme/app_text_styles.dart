@@ -32,13 +32,13 @@ class AppTextStyles {
   TextStyle header2 = GoogleFonts.poppins(
     fontSize: (20.sp).clamp(20.0, 30.0).toDouble(),
     color: Colors.black,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w700,
   );
 
   TextStyle header3 = GoogleFonts.poppins(
     fontSize: (16.sp).clamp(16.0, 24.0).toDouble(),
     color: Colors.black,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w600,
   );
 
   TextStyle bodyLarge = GoogleFonts.poppins(

@@ -72,7 +72,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
                 _buildTextField(label: 'Product Name', controller: _nameController),
                 SizedBox(height: 16.h),
                 _buildTextField(
-                  label: 'Stock Quantity',
+                  label: 'Stock',
                   controller: _stockController,
                   keyboardType: TextInputType.number,
                 ),
@@ -89,7 +89,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
                 )),
                 SizedBox(height: 16.h),
                 Obx(() => _buildDropdown(
-                  label: 'Storage Name',
+                  label: 'Storage',
                   value: _selectedStorage,
                   items: storageController.storages.map((e) => e.name).toList(),
                   onChanged: (val) {
@@ -104,7 +104,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
                   controller: _dateController,
                   readOnly: true,
                   onTap: () => _selectDate(context),
-                  suffixIcon: Icon(Icons.calendar_today, color: AppTheme.appColors.primary),
+                  suffixIcon: Icon(Icons.calendar_today, color: AppTheme.appColors.grey),
                 ),
                 SizedBox(height: 32.h),
                 SizedBox(
@@ -164,7 +164,6 @@ class _ProductInScreenState extends State<ProductInScreen> {
                       'Submit',
                       style: AppTheme.appTextStyles.bodyLarge.copyWith(
                         color: AppTheme.appColors.white,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
@@ -215,8 +214,8 @@ class _ProductInScreenState extends State<ProductInScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: AppTheme.appColors.primary),
-            ),
+              borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+            )
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -245,12 +244,21 @@ class _ProductInScreenState extends State<ProductInScreen> {
         SizedBox(height: 8.h),
         DropdownButtonFormField<String>(
           value: value,
+          style: AppTheme.appTextStyles.bodyMedium.copyWith(
+            color: AppTheme.appColors.black,
+          ),
+          hint: Text(
+            'Select $label',
+            style: AppTheme.appTextStyles.bodyMedium.copyWith(
+              color: AppTheme.appColors.grey,
+            ),
+          ),
           items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: 'Select $label',
             hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
-              color: AppTheme.appColors.grey,
+              color: AppTheme.appColors.black,
             ),
             contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             border: OutlineInputBorder(
@@ -263,7 +271,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: AppTheme.appColors.primary),
+              borderSide: BorderSide(color: AppTheme.appColors.softGrey),
             ),
           ),
           validator: (val) => val == null ? 'Please select $label' : null,
