@@ -23,10 +23,21 @@ class _ProductInScreenState extends State<ProductInScreen> {
   final _stockController = TextEditingController();
   final _dateController = TextEditingController();
 
-  final ProductController productController = Get.put(sl<ProductController>());
-  final CategoryController categoryController = Get.put(sl<CategoryController>());
-  final StorageController storageController = Get.put(sl<StorageController>());
-  final ReportController reportController = Get.put(sl<ReportController>());
+  final ProductController productController =
+      Get.isRegistered<ProductController>()
+      ? Get.find<ProductController>()
+      : Get.put(sl<ProductController>());
+  final CategoryController categoryController =
+      Get.isRegistered<CategoryController>()
+      ? Get.find<CategoryController>()
+      : Get.put(sl<CategoryController>());
+  final StorageController storageController =
+      Get.isRegistered<StorageController>()
+      ? Get.find<StorageController>()
+      : Get.put(sl<StorageController>());
+  final ReportController reportController = Get.isRegistered<ReportController>()
+      ? Get.find<ReportController>()
+      : Get.put(sl<ReportController>());
 
   String? _selectedCategory;
   String? _selectedStorage;
@@ -64,12 +75,12 @@ class _ProductInScreenState extends State<ProductInScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Product In',
-                  style: AppTheme.appTextStyles.header2,
-                ),
+                Text('Product In', style: AppTheme.appTextStyles.header2),
                 SizedBox(height: 24.h),
-                _buildTextField(label: 'Product Name', controller: _nameController),
+                _buildTextField(
+                  label: 'Product Name',
+                  controller: _nameController,
+                ),
                 SizedBox(height: 16.h),
                 _buildTextField(
                   label: 'Stock',
@@ -77,34 +88,45 @@ class _ProductInScreenState extends State<ProductInScreen> {
                   keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 16.h),
-                Obx(() => _buildDropdown(
-                  label: 'Category',
-                  value: _selectedCategory,
-                  items: categoryController.categories.map((e) => e.name).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedCategory = val;
-                    });
-                  },
-                )),
+                Obx(
+                  () => _buildDropdown(
+                    label: 'Category',
+                    value: _selectedCategory,
+                    items: categoryController.categories
+                        .map((e) => e.name)
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedCategory = val;
+                      });
+                    },
+                  ),
+                ),
                 SizedBox(height: 16.h),
-                Obx(() => _buildDropdown(
-                  label: 'Storage',
-                  value: _selectedStorage,
-                  items: storageController.storages.map((e) => e.name).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _selectedStorage = val;
-                    });
-                  },
-                )),
+                Obx(
+                  () => _buildDropdown(
+                    label: 'Storage',
+                    value: _selectedStorage,
+                    items: storageController.storages
+                        .map((e) => e.name)
+                        .toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _selectedStorage = val;
+                      });
+                    },
+                  ),
+                ),
                 SizedBox(height: 16.h),
                 _buildTextField(
                   label: 'Date In',
                   controller: _dateController,
                   readOnly: true,
                   onTap: () => _selectDate(context),
-                  suffixIcon: Icon(Icons.calendar_today, color: AppTheme.appColors.grey),
+                  suffixIcon: Icon(
+                    Icons.calendar_today,
+                    color: AppTheme.appColors.grey,
+                  ),
                 ),
                 SizedBox(height: 32.h),
                 SizedBox(
@@ -112,7 +134,9 @@ class _ProductInScreenState extends State<ProductInScreen> {
                   height: 50.h,
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (_formKey.currentState!.validate() && _selectedCategory != null && _selectedStorage != null) {
+                      if (_formKey.currentState!.validate() &&
+                          _selectedCategory != null &&
+                          _selectedStorage != null) {
                         final product = ProductModel(
                           name: _nameController.text,
                           categoryName: _selectedCategory!,
@@ -121,7 +145,9 @@ class _ProductInScreenState extends State<ProductInScreen> {
                           dateIn: _dateController.text,
                         );
 
-                        final created = await productController.addProduct(product);
+                        final created = await productController.addProduct(
+                          product,
+                        );
                         if (created != null) {
                           await reportController.addMovement(
                             ProductMovementModel(
@@ -134,11 +160,14 @@ class _ProductInScreenState extends State<ProductInScreen> {
                               date: created.dateIn,
                             ),
                           );
+                          await productController.fetchProducts();
                         }
 
                         if (created != null && mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Product added successfully!')),
+                            const SnackBar(
+                              content: Text('Product added successfully!'),
+                            ),
                           );
                           _nameController.clear();
                           _stockController.clear();
@@ -149,7 +178,9 @@ class _ProductInScreenState extends State<ProductInScreen> {
                           });
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please fill all fields')),
+                            const SnackBar(
+                              content: Text('Please fill all fields'),
+                            ),
                           );
                         }
                       }
@@ -187,10 +218,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTheme.appTextStyles.bodyMedium,
-        ),
+        Text(label, style: AppTheme.appTextStyles.bodyMedium),
         SizedBox(height: 8.h),
         TextFormField(
           controller: controller,
@@ -203,7 +231,10 @@ class _ProductInScreenState extends State<ProductInScreen> {
               color: AppTheme.appColors.grey,
             ),
             suffixIcon: suffixIcon,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: AppTheme.appColors.softGrey),
@@ -215,7 +246,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: AppTheme.appColors.softGrey),
-            )
+            ),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -237,10 +268,7 @@ class _ProductInScreenState extends State<ProductInScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTheme.appTextStyles.bodyMedium,
-        ),
+        Text(label, style: AppTheme.appTextStyles.bodyMedium),
         SizedBox(height: 8.h),
         DropdownButtonFormField<String>(
           value: value,
@@ -253,14 +281,19 @@ class _ProductInScreenState extends State<ProductInScreen> {
               color: AppTheme.appColors.grey,
             ),
           ),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          items: items
+              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
             hintText: 'Select $label',
             hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
               color: AppTheme.appColors.black,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: AppTheme.appColors.softGrey),

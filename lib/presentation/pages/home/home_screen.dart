@@ -15,8 +15,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final CategoryController categoryController = Get.put(sl<CategoryController>());
+  final CategoryController categoryController = Get.put(
+    sl<CategoryController>(),
+  );
   final ProductController productController = Get.put(sl<ProductController>());
+  final double _bottomListSpacing = 110;
 
   Future<void> _refreshData() async {
     await Future.wait([
@@ -40,10 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Kinbii',
-                style: AppTheme.appTextStyles.appName,
-              ),
+              Text('Kinbii', style: AppTheme.appTextStyles.appName),
               Text(
                 'Inventory Management System',
                 style: AppTheme.appTextStyles.bodyMedium,
@@ -53,14 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 'Hi, Kinbii User! 💖',
                 style: AppTheme.appTextStyles.appName.copyWith(
                   fontSize: 20.sp,
-                  color: AppTheme.appColors.black
-                )
+                  color: AppTheme.appColors.black,
+                ),
               ),
               SizedBox(height: 12.h),
-              Text(
-                'Category Product',
-                style: AppTheme.appTextStyles.header3,
-              ),
+              Text('Category Product', style: AppTheme.appTextStyles.header3),
               SizedBox(height: 16.h),
               Expanded(
                 child: Obx(() {
@@ -71,6 +68,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: categories.isEmpty
                         ? ListView(
                             physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.only(
+                              bottom: _bottomListSpacing.h,
+                            ),
                             children: [
                               SizedBox(height: 200.h),
                               Center(
@@ -83,11 +83,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           )
                         : ListView.separated(
                             physics: const AlwaysScrollableScrollPhysics(),
+                            padding: EdgeInsets.fromLTRB(
+                              0,
+                              0,
+                              0,
+                              _bottomListSpacing.h,
+                            ),
                             itemCount: categories.length,
-                            separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                            separatorBuilder: (context, index) =>
+                                SizedBox(height: 12.h),
                             itemBuilder: (context, index) {
                               final categoryName = categories[index].name;
-                              final stock = productController.getProductCountByCategory(categoryName);
+                              final stock = productController
+                                  .getProductCountByCategory(categoryName);
                               return _buildCategoryItem(
                                 context,
                                 categoryName,
@@ -156,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       '$stock',
                       style: AppTheme.appTextStyles.bodyMedium.copyWith(
                         color: AppTheme.appColors.white,
-                        fontSize: 22.sp
+                        fontSize: 22.sp,
                       ),
                     ),
                     SizedBox(width: 6.w),
@@ -164,12 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       stock == 1 ? 'Product' : 'Products',
                       style: AppTheme.appTextStyles.bodyMedium.copyWith(
                         color: AppTheme.appColors.white,
-                        fontSize: 16.sp
+                        fontSize: 16.sp,
                       ),
-                    )
+                    ),
                   ],
-                )
-
+                ),
               ],
             ),
             Icon(

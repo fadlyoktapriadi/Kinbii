@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:kinbii/di/injection.dart';
@@ -22,17 +21,13 @@ class ReportProductScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text('Report Product', style: AppTheme.appTextStyles.header2),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_download_outlined),
-            onPressed: () => _exportCsv(context),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Obx(() {
-          final totalStock = productController.products
-              .fold(0, (sum, item) => sum + item.stock);
+          final totalStock = productController.products.fold(
+            0,
+            (sum, item) => sum + item.stock,
+          );
           final totalProducts = productController.products.length;
 
           return SingleChildScrollView(
@@ -131,7 +126,10 @@ class ReportProductScreen extends StatelessWidget {
   Widget _buildStockList() {
     return Obx(() {
       if (productController.products.isEmpty) {
-        return Text('No products found', style: AppTheme.appTextStyles.bodyMedium);
+        return Text(
+          'No products found',
+          style: AppTheme.appTextStyles.bodyMedium,
+        );
       }
       return ListView.separated(
         shrinkWrap: true,
@@ -192,7 +190,10 @@ class ReportProductScreen extends StatelessWidget {
 
   Widget _buildMovementList(List movements) {
     if (movements.isEmpty) {
-      return Text('No data available', style: AppTheme.appTextStyles.bodyMedium);
+      return Text(
+        'No data available',
+        style: AppTheme.appTextStyles.bodyMedium,
+      );
     }
     return ListView.separated(
       shrinkWrap: true,
@@ -234,7 +235,10 @@ class ReportProductScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Qty: ${movement.quantity}', style: AppTheme.appTextStyles.bodyMedium),
+                  Text(
+                    'Qty: ${movement.quantity}',
+                    style: AppTheme.appTextStyles.bodyMedium,
+                  ),
                   Text(movement.date, style: AppTheme.appTextStyles.bodySmall),
                 ],
               ),
@@ -244,20 +248,4 @@ class ReportProductScreen extends StatelessWidget {
       },
     );
   }
-
-  void _exportCsv(BuildContext context) {
-    final buffer = StringBuffer();
-    buffer.writeln('type,product,category,storage,quantity,date');
-
-    for (final m in reportController.movements) {
-      buffer.writeln(
-          '${m.type},${m.productName},${m.categoryName},${m.storageName},${m.quantity},${m.date}');
-    }
-
-    Clipboard.setData(ClipboardData(text: buffer.toString()));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Report copied as CSV to clipboard')),
-    );
-  }
 }
-

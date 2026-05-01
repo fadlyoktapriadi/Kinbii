@@ -22,8 +22,13 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
   final _stockOutController = TextEditingController();
   final _dateController = TextEditingController();
 
-  final ProductController productController = Get.put(sl<ProductController>());
-  final ReportController reportController = Get.put(sl<ReportController>());
+  final ProductController productController =
+      Get.isRegistered<ProductController>()
+      ? Get.find<ProductController>()
+      : Get.put(sl<ProductController>());
+  final ReportController reportController = Get.isRegistered<ReportController>()
+      ? Get.find<ReportController>()
+      : Get.put(sl<ReportController>());
 
   ProductModel? _selectedProduct;
 
@@ -66,10 +71,7 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Product Out',
-                  style: AppTheme.appTextStyles.header2,
-                ),
+                Text('Product Out', style: AppTheme.appTextStyles.header2),
                 SizedBox(height: 24.h),
                 _buildProductSearchField(),
                 SizedBox(height: 16.h),
@@ -84,7 +86,10 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
                   controller: _dateController,
                   readOnly: true,
                   onTap: () => _selectDate(context),
-                  suffixIcon: Icon(Icons.calendar_today, color: AppTheme.appColors.primary),
+                  suffixIcon: Icon(
+                    Icons.calendar_today,
+                    color: AppTheme.appColors.primary,
+                  ),
                 ),
                 SizedBox(height: 32.h),
                 SizedBox(
@@ -94,8 +99,10 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         if (_selectedProduct != null) {
-                          final int stockOut = int.tryParse(_stockOutController.text) ?? 0;
-                          final int newStock = (_selectedProduct!.stock - stockOut) < 0
+                          final int stockOut =
+                              int.tryParse(_stockOutController.text) ?? 0;
+                          final int newStock =
+                              (_selectedProduct!.stock - stockOut) < 0
                               ? 0
                               : (_selectedProduct!.stock - stockOut);
 
@@ -119,7 +126,11 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
                             );
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Product stock updated successfully!')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Product stock updated successfully!',
+                                  ),
+                                ),
                               );
                             }
                             _productNameController.clear();
@@ -131,7 +142,9 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
                           }
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Please select a valid product')),
+                            const SnackBar(
+                              content: Text('Please select a valid product'),
+                            ),
                           );
                         }
                       }
@@ -160,80 +173,107 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
   }
 
   Widget _buildProductSearchField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Product',
-          style: AppTheme.appTextStyles.bodyMedium,
-        ),
-        SizedBox(height: 8.h),
-        TypeAheadField<ProductModel>(
-          controller: _productNameController,
-          builder: (context, controller, focusNode) {
-            return TextFormField(
-              controller: controller,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                hintText: 'Search Product',
-                hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
-                  color: AppTheme.appColors.grey,
+    return Obx(() {
+      final hasProducts = productController.products.isNotEmpty;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Product', style: AppTheme.appTextStyles.bodyMedium),
+          SizedBox(height: 8.h),
+          TypeAheadField<ProductModel>(
+            key: ValueKey(
+              'product-out-typeahead-${productController.products.length}',
+            ),
+            controller: _productNameController,
+            builder: (context, controller, focusNode) {
+              return TextFormField(
+                controller: controller,
+                focusNode: focusNode,
+                enabled: hasProducts,
+                onTap: () async {
+                  await productController.fetchProducts();
+                },
+                decoration: InputDecoration(
+                  hintText: hasProducts
+                      ? 'Search Product'
+                      : 'No product available yet',
+                  hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
+                    color: AppTheme.appColors.grey,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.primary),
+                  ),
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                onChanged: (value) {
+                  if (_selectedProduct?.name != value) {
+                    setState(() {
+                      _selectedProduct = null;
+                    });
+                  }
+                },
+                validator: (val) {
+                  if (!hasProducts) {
+                    return 'Please add product in Product In first';
+                  }
+                  if (val == null || val.isEmpty) {
+                    return 'Please select a product';
+                  }
+                  if (_selectedProduct == null ||
+                      _selectedProduct!.name != val) {
+                    return 'Please select a valid product from the list';
+                  }
+                  return null;
+                },
+              );
+            },
+            suggestionsCallback: (pattern) {
+              return productController.products
+                  .where(
+                    (product) => product.name.toLowerCase().contains(
+                      pattern.toLowerCase(),
+                    ),
+                  )
+                  .toList();
+            },
+            itemBuilder: (context, ProductModel suggestion) {
+              return ListTile(
+                title: Text(
+                  suggestion.name,
+                  style: AppTheme.appTextStyles.bodyLarge,
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                subtitle: Text(
+                  'Category: ${suggestion.categoryName} • Stock: ${suggestion.stock}',
+                  style: AppTheme.appTextStyles.bodySmall,
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: AppTheme.appColors.primary),
-                ),
-              ),
-              onChanged: (value) {
-                if (_selectedProduct?.name != value) {
-                  setState(() {
-                    _selectedProduct = null;
-                  });
-                }
-              },
-              validator: (val) {
-                if (val == null || val.isEmpty) {
-                  return 'Please select a product';
-                }
-                if (_selectedProduct == null || _selectedProduct!.name != val) {
-                  return 'Please select a valid product from the list';
-                }
-                return null;
-              },
-            );
-          },
-          suggestionsCallback: (pattern) {
-            return productController.products
-                .where((product) => product.name.toLowerCase().contains(pattern.toLowerCase()))
-                .toList();
-          },
-          itemBuilder: (context, ProductModel suggestion) {
-            return ListTile(
-              title: Text(suggestion.name, style: AppTheme.appTextStyles.bodyLarge),
-              subtitle: Text(
-                'Category: ${suggestion.categoryName} • Stock: ${suggestion.stock}',
-                style: AppTheme.appTextStyles.bodySmall,
-              ),
-            );
-          },
-          onSelected: (ProductModel suggestion) {
-            setState(() {
-              _selectedProduct = suggestion;
-            });
-            _productNameController.text = suggestion.name;
-          },
-        ),
-      ],
-    );
+              );
+            },
+            onSelected: (ProductModel suggestion) {
+              setState(() {
+                _selectedProduct = suggestion;
+              });
+              _productNameController.text = suggestion.name;
+            },
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildTextField({
@@ -247,10 +287,7 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTheme.appTextStyles.bodyMedium,
-        ),
+        Text(label, style: AppTheme.appTextStyles.bodyMedium),
         SizedBox(height: 8.h),
         TextFormField(
           controller: controller,
@@ -263,7 +300,10 @@ class _ProductOutScreenState extends State<ProductOutScreen> {
               color: AppTheme.appColors.grey,
             ),
             suffixIcon: suffixIcon,
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(color: AppTheme.appColors.softGrey),
