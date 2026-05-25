@@ -146,6 +146,17 @@ class _ProductListScreenState extends State<ProductListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: Icon(Icons.edit, color: AppTheme.appColors.info),
+                title: Text(
+                  'Edit Product Name',
+                  style: AppTheme.appTextStyles.bodyLarge,
+                ),
+                onTap: () {
+                  context.pop();
+                  _showEditProductNameDialog(index, product);
+                },
+              ),
+              ListTile(
                 leading: Icon(Icons.edit_note, color: AppTheme.appColors.info),
                 title: Text(
                   'Edit Stock',
@@ -206,6 +217,94 @@ class _ProductListScreenState extends State<ProductListScreen> {
     );
   }
 
+  void _showEditProductNameDialog(int index, ProductModel product) {
+    final nameController = TextEditingController(text: product.name);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20.w,
+            right: 20.w,
+            top: 20.h,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Edit Product Name', style: AppTheme.appTextStyles.header3),
+              SizedBox(height: 16.h),
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  hintText: 'Product name...',
+                  hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
+                    color: AppTheme.appColors.grey,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 12.h,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(18.r),
+                    borderSide: BorderSide(color: AppTheme.appColors.softGrey),
+                  ),
+                  filled: true,
+                  fillColor: AppTheme.appColors.white,
+                ),
+              ),
+              SizedBox(height: 24.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => context.pop(),
+                    child: Text(
+                      'Cancel',
+                      style: TextStyle(color: AppTheme.appColors.grey),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (nameController.text.isNotEmpty) {
+                        controller.updateProduct(
+                          index,
+                          product.copyWith(name: nameController.text),
+                        );
+                        context.pop();
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.appColors.primary,
+                    ),
+                    child: Text(
+                      'Save',
+                      style: TextStyle(color: AppTheme.appColors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showEditStockDialog(int index, ProductModel product) {
     final stockController = TextEditingController(
       text: product.stock.toString(),
@@ -234,7 +333,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 controller: stockController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  hintText: 'Search product...',
+                  hintText: 'Enter new stock...',
                   hintStyle: AppTheme.appTextStyles.bodyMedium.copyWith(
                     color: AppTheme.appColors.grey,
                   ),
